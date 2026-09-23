@@ -1,6 +1,7 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
+import cors from 'cors'
 import productRoutes from './routes/productRoutes.js'
 import inquiryRoutes from './routes/inquiryRoutes.js'
 import userRoutes from './routes/userRoutes.js'
@@ -16,6 +17,10 @@ mongoose.connect(process.env.MONGO_URI).then(()=>{
     console.log(err)
 
 })
+app.use(cors({
+  origin: "http://localhost:3000",
+  credentials: true
+}))
 app.use(cookieParser())
 app.use(express.json())
 app.use('/products',productRoutes)

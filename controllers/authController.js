@@ -65,3 +65,14 @@ export const logout = (req, res) => {
   res.clearCookie("refreshToken")
   res.status(200).json({ message: "Logged out successfully" })
 }
+export const me = async (req, res) => {
+    try{
+        const user = await User.findById(req.user.id)
+        if(!user){
+            return res.status(404).json({ message: "User not found" })
+        }
+        res.status(200).json({ user: { id: user._id, name: user.name, email: user.email } })
+    }catch(err){
+        res.status(500).json({ error: err.message })
+    }
+}
