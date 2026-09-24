@@ -14,8 +14,7 @@ const PORT = process.env.PORT
 mongoose.connect(process.env.MONGO_URI).then(()=>{
     console.log("Connected to MongoDB")
 }).catch((err)=>{
-    console.log(err)
-
+    console.log(err)  
 })
 app.use(cors({
   origin: "http://localhost:3000",
