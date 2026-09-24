@@ -20,13 +20,13 @@ export const login = async (req, res) => {
     try {
         const existingUser = await User.findOne({ email: email })
         if (!existingUser) {
-            return res.status(404).json({ message: "User not found" })
+            return res.status(401).json({ message: "Invalid Email or Password" })
         }
         const isPasswordCorrect = await bcrypt.compare(password, existingUser.password)
         if (!isPasswordCorrect) {
-            return res.status(400).json({ message: "Wrong password" })
+            return res.status(401).json({ message: "Invalid Email or Password" })
         }
-        const accessToken = jwt.sign({ id: existingUser._id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" })
+        const accessToken = jwt.sign({ id: existingUser._id , role : existingUser.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" })
         const refreshToken = jwt.sign({ id: existingUser._id }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" })
         res.cookie("accessToken", accessToken,{
             httpOnly: true,
@@ -48,7 +48,9 @@ export const refresh = async (req, res) => {
         return res.status(401).json({ message: "No refresh token provided" })  
     }
     const decoded=jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET)
-    const accessToken =jwt.sign({ id: decoded.id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" })
+    const user = await User.findById(decoded.id)
+    if(!user) return res.status(403).json({message : " User not found "})
+    const accessToken =jwt.sign({ id: user._id , role : user.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" })
     res.cookie("accessToken", accessToken,{
         httpOnly: true,
         maxAge: 15 * 60 * 1000
@@ -71,7 +73,7 @@ export const me = async (req, res) => {
         if(!user){
             return res.status(404).json({ message: "User not found" })
         }
-        res.status(200).json({ user: { id: user._id, name: user.name, email: user.email } })
+        res.status(200).json({ user: { id: user._id, name: user.name, email: user.email , role : user.role } })
     }catch(err){
         res.status(500).json({ error: err.message })
     }
