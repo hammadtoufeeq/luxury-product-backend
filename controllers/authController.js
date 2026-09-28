@@ -1,6 +1,13 @@
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+let secureValue = false
+let sameSiteValue = 'lax'
+
+if (process.env.NODE_ENV === 'production') {
+    secureValue = true
+    sameSiteValue = 'none'
+}
 export const signup = async (req, res) => {
     const { name, email, password } = req.body;
     try {
@@ -26,55 +33,69 @@ export const login = async (req, res) => {
         if (!isPasswordCorrect) {
             return res.status(401).json({ message: "Invalid Email or Password" })
         }
-        const accessToken = jwt.sign({ id: existingUser._id , role : existingUser.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" })
+        const accessToken = jwt.sign({ id: existingUser._id, role: existingUser.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" })
         const refreshToken = jwt.sign({ id: existingUser._id }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" })
-        res.cookie("accessToken", accessToken,{
+        res.cookie("accessToken", accessToken, {
             httpOnly: true,
+            secure: secureValue,
+            sameSite: sameSiteValue,
             maxAge: 15 * 60 * 1000
         })
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
+            secure: secureValue,
+            sameSite: sameSiteValue,
             maxAge: 7 * 24 * 60 * 60 * 1000
         })
-        return res.status(200).json({ user: { name: existingUser.name, email: existingUser.email , role : existingUser.role  }, message: "Login successful" })
+        return res.status(200).json({ user: { name: existingUser.name, email: existingUser.email, role: existingUser.role }, message: "Login successful" })
     } catch (err) {
         res.status(500).json({ error: err.message })
     }
 }
 export const refresh = async (req, res) => {
-    try{
-    const refreshToken = req.cookies.refreshToken
-    if(!refreshToken){
-        return res.status(401).json({ message: "No refresh token provided" })  
-    }
-    const decoded=jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET)
-    const user = await User.findById(decoded.id)
-    if(!user) return res.status(403).json({message : " User not found "})
-    const accessToken =jwt.sign({ id: user._id , role : user.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" })
-    res.cookie("accessToken", accessToken,{
-        httpOnly: true,
-        maxAge: 15 * 60 * 1000
-    })
-    return res.status(200).json({ message: "Access token refreshed" })
+    try {
+        const refreshToken = req.cookies.refreshToken
+        if (!refreshToken) {
+            return res.status(401).json({ message: "No refresh token provided" })
+        }
+        const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET)
+        const user = await User.findById(decoded.id)
+        if (!user) return res.status(403).json({ message: " User not found " })
+        const accessToken = jwt.sign({ id: user._id, role: user.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" })
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: secureValue,
+            sameSite: sameSiteValue,
+            maxAge: 15 * 60 * 1000
+        })
+        return res.status(200).json({ message: "Access token refreshed" })
 
-}
-catch(err){
+    }
+    catch (err) {
         res.status(403).json({ error: err.message })
-    }  
+    }
 }
 export const logout = (req, res) => {
-  res.clearCookie("accessToken")
-  res.clearCookie("refreshToken")
-  res.status(200).json({ message: "Logged out successfully" })
+    res.clearCookie("accessToken", {
+        httpOnly: true,
+        secure: secureValue,
+        sameSite: sameSiteValue
+    })
+    res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: secureValue,
+        sameSite: sameSiteValue
+    })
+    res.status(200).json({ message: "Logged out successfully" })
 }
 export const me = async (req, res) => {
-    try{
+    try {
         const user = await User.findById(req.user.id)
-        if(!user){
+        if (!user) {
             return res.status(404).json({ message: "User not found" })
         }
-        res.status(200).json({ user: { id: user._id, name: user.name, email: user.email , role : user.role } })
-    }catch(err){
+        res.status(200).json({ user: { id: user._id, name: user.name, email: user.email, role: user.role } })
+    } catch (err) {
         res.status(500).json({ error: err.message })
     }
 }

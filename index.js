@@ -17,7 +17,7 @@ mongoose.connect(process.env.MONGO_URI).then(()=>{
     console.log(err)  
 })
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: process.env.FRONTEND_URL,
   credentials: true
 }))
 app.use(cookieParser())
@@ -32,3 +32,4 @@ app.get('/',(req,res)=>{
 app.listen(PORT,()=>{
     console.log(`Server is running on port ${PORT}`)
 })
+export default app
