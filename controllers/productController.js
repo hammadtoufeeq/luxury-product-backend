@@ -22,9 +22,10 @@ export const getProducts = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while fetching the products' })
   }
 }
+const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export const searchProductByName = async (req, res) => {
   try {
-    const searchedName = req.params.name
+    const searchedName = escapeRegex(req.params.name)
     const product = await Product.find({ name: { $regex: searchedName, $options: 'i' } })
     res.status(200).json(product)
   } catch (err) {
