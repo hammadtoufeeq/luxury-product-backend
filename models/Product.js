@@ -18,5 +18,6 @@ const productSchema = new mongoose.Schema({
         required: true
     }
 })
+productSchema.index({ category: 1 }) // Create a compound index on category field
 const Product = mongoose.model("Product", productSchema) //const modelname=mongoose.model(name which is collection name, schema name)
 export default Product

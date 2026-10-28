@@ -1,4 +1,5 @@
 import express from 'express'
+import helmet from 'helmet'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
 import cors from 'cors'
@@ -9,6 +10,7 @@ import cookieParser from 'cookie-parser'
 dotenv.config()
 
 const app = express()
+app.use(helmet())
 const PORT = process.env.PORT
 
 mongoose.connect(process.env.MONGO_URI).then(()=>{

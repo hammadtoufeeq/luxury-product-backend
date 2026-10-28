@@ -12,10 +12,10 @@ describe('GET /products/:id', function () {
     expect(response.body._id).toBe(anyProduct._id.toString())
   })
 
-  test('should return 500 for a non-existent/invalid id format', async function () {
+  test('should return 404 for a non-existent/invalid id format', async function () {
     const response = await request(app).get('/products/123')
 
-    expect(response.status).toBe(500)
+    expect(response.status).toBe(404)
   })
 })
 
